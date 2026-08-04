@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}教職員名冊 - 公告簽收系統{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>教職員名冊</h1>
+  <div>
+    <a class="btn" href="{{ url_for('admin_staff_new') }}">+ 新增單筆</a>
+    <a class="btn btn-secondary" href="{{ url_for('admin_staff_import') }}">批次匯入 CSV</a>
+  </div>
+</div>
+<table class="list-table">
+  <thead>
+    <tr><th>姓名</th><th>帳號</th><th>單位</th><th>職稱</th><th>角色</th><th>狀態</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for s in staff %}
+    <tr class="{{ '' if s.is_active else 'inactive-row' }}">
+      <td>{{ s.name }}</td>
+      <td>{{ s.username }}</td>
+      <td>{{ s.department }}</td>
+      <td>{{ s.title }}</td>
+      <td>{{ '管理者' if s.is_admin else '一般教職員' }}</td>
+      <td>{{ '啟用' if s.is_active else '停用' }}</td>
+      <td>
+        <a href="{{ url_for('admin_staff_edit', staff_id=s.id) }}">編輯</a>
+        <form method="post" action="{{ url_for('admin_staff_reset_password', staff_id=s.id) }}" style="display:inline" onsubmit="return confirm('確定要重設 ' + '{{ s.name }}' + ' 的密碼嗎？');">
+          <button type="submit" class="link-btn">重設密碼</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

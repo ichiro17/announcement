@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}登入 - 公告簽收系統{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>公告簽收系統</h1>
+  <form method="post">
+    <label>帳號
+      <input type="text" name="username" required autofocus>
+    </label>
+    <label>密碼
+      <input type="password" name="password" required>
+    </label>
+    <button type="submit">登入</button>
+  </form>
+</div>
+{% endblock %}

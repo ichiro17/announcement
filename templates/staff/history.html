@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}簽收紀錄 - 公告簽收系統{% endblock %}
+{% block content %}
+<h1>我的簽收紀錄</h1>
+{% if signed %}
+<table class="list-table">
+  <thead>
+    <tr><th>標題</th><th>摘要</th><th>簽收時間</th><th>原始公告</th></tr>
+  </thead>
+  <tbody>
+    {% for b in signed %}
+    <tr>
+      <td>{{ b.title }}</td>
+      <td>{{ b.summary }}</td>
+      <td>{{ b.signed_at }}</td>
+      <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hint">目前還沒有簽收紀錄。</p>
+{% endif %}
+{% endblock %}

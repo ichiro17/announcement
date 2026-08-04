@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}公告簽收系統{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('index') }}">公告簽收系統</a>
+    <nav>
+      {% if current_user %}
+        {% if current_user.is_admin %}
+          <a href="{{ url_for('admin_dashboard') }}">簽收單管理</a>
+          <a href="{{ url_for('admin_staff_list') }}">教職員名冊</a>
+        {% else %}
+          <a href="{{ url_for('staff_dashboard') }}">待簽收</a>
+          <a href="{{ url_for('staff_history') }}">簽收紀錄</a>
+        {% endif %}
+      {% endif %}
+    </nav>
+    <div class="user-info">
+      {% if current_user %}
+        {{ current_user.name }}
+        <a href="{{ url_for('change_password') }}">修改密碼</a>
+        <a href="{{ url_for('logout') }}">登出</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">教職員登入</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

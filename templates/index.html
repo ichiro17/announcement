@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}公告簽收系統{% endblock %}
+{% block content %}
+<h1>待簽收公告清單</h1>
+<p class="hint">以下為校內管理者建立、需要指定教職員簽收確認的公告。教職員請點右上角「教職員登入」進行簽收。</p>
+{% if bulletins %}
+<table class="list-table">
+  <thead>
+    <tr><th>標題</th><th>應簽對象</th><th>簽收期限</th><th>原始公告</th></tr>
+  </thead>
+  <tbody>
+    {% for b in bulletins %}
+    <tr class="{{ 'overdue-row' if b.deadline and b.deadline < today_str }}">
+      <td>{{ b.title }}</td>
+      <td>{{ b.target_note or '－' }}</td>
+      <td>{{ b.deadline or '無' }}{% if b.deadline and b.deadline < today_str %} <span class="tag tag-overdue">已逾期</span>{% endif %}</td>
+      <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hint">目前還沒有建立任何簽收單。</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}簽收單管理 - 公告簽收系統{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>簽收單管理</h1>
+  <a class="btn" href="{{ url_for('admin_bulletin_new') }}">+ 建立新簽收單</a>
+</div>
+{% if bulletins %}
+<table class="list-table">
+  <thead>
+    <tr><th>標題</th><th>建立時間</th><th>簽收期限</th><th>已簽 / 應簽</th><th>狀態</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for b in bulletins %}
+    {% set unsigned = b.total_targets - b.signed_count %}
+    {% set overdue = b.deadline and b.deadline < today_str and unsigned > 0 %}
+    <tr class="{{ 'overdue-row' if overdue }}">
+      <td>{{ b.title }}</td>
+      <td>{{ b.created_at }}</td>
+      <td>{{ b.deadline or '無' }}</td>
+      <td>{{ b.signed_count }} / {{ b.total_targets }}</td>
+      <td>
+        {% if unsigned == 0 %}
+          <span class="tag tag-done">全數簽收</span>
+        {% elif overdue %}
+          <span class="tag tag-overdue">逾期未簽 {{ unsigned }} 人</span>
+        {% else %}
+          <span class="tag">未簽 {{ unsigned }} 人</span>
+        {% endif %}
+      </td>
+      <td><a href="{{ url_for('admin_bulletin_detail', bulletin_id=b.id) }}">查看名單</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hint">目前還沒有建立任何簽收單。</p>
+{% endif %}
+{% endblock %}

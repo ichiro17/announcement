@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}錯誤 - 公告簽收系統{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>發生錯誤</h1>
+  <p>{{ message }}</p>
+  <a href="{{ url_for('index') }}">返回首頁</a>
+</div>
+{% endblock %}

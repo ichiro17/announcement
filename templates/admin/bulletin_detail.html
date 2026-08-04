@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ bulletin.title }} - 簽收單管理{% endblock %}
+{% block content %}
+<h1>{{ bulletin.title }}</h1>
+<p>{{ bulletin.summary }}</p>
+<p>
+  {% if bulletin.source_url %}<a href="{{ bulletin.source_url }}" target="_blank" rel="noopener">查看原始公告</a> ｜ {% endif %}
+  對象說明：{{ bulletin.target_note or '無' }} ｜
+  簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }}
+</p>
+
+<table class="list-table">
+  <thead>
+    <tr><th>姓名</th><th>單位</th><th>職稱</th><th>簽收狀態</th></tr>
+  </thead>
+  <tbody>
+    {% for t in targets %}
+    {% set overdue = bulletin.deadline and bulletin.deadline < today_str and not t.signed_at %}
+    <tr class="{{ 'overdue-row' if overdue }}">
+      <td>{{ t.name }}</td>
+      <td>{{ t.department }}</td>
+      <td>{{ t.title }}</td>
+      <td>
+        {% if t.signed_at %}
+          <span class="tag tag-done">已簽收 {{ t.signed_at }}</span>
+        {% elif overdue %}
+          <span class="tag tag-overdue">逾期未簽</span>
+        {% else %}
+          <span class="tag">未簽收</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

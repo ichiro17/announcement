@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ '編輯教職員' if staff else '新增教職員' }} - 公告簽收系統{% endblock %}
+{% block content %}
+<h1>{{ '編輯教職員' if staff else '新增教職員' }}</h1>
+<form method="post" class="card">
+  <label>姓名 *
+    <input type="text" name="name" value="{{ staff.name if staff else '' }}" required>
+  </label>
+  {% if not staff %}
+  <label>帳號 *
+    <input type="text" name="username" required>
+  </label>
+  <label>員工編號（將作為預設密碼）
+    <input type="text" name="employee_no">
+  </label>
+  {% endif %}
+  <label>單位
+    <input type="text" name="department" value="{{ staff.department if staff else '' }}">
+  </label>
+  <label>職稱
+    <input type="text" name="title" value="{{ staff.title if staff else '' }}">
+  </label>
+  <label>Email
+    <input type="email" name="email" value="{{ staff.email if staff else '' }}">
+  </label>
+  <label class="checkbox-line">
+    <input type="checkbox" name="is_admin" {{ 'checked' if staff and staff.is_admin }}>
+    設為管理者
+  </label>
+  {% if staff %}
+  <label class="checkbox-line">
+    <input type="checkbox" name="is_active" {{ 'checked' if staff.is_active }}>
+    帳號啟用中
+  </label>
+  {% endif %}
+  <button type="submit">儲存</button>
+</form>
+{% endblock %}

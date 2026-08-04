@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}批次匯入教職員 - 公告簽收系統{% endblock %}
+{% block content %}
+<h1>批次匯入教職員名冊</h1>
+<div class="card">
+  <p class="hint">
+    CSV 檔案需包含欄位：<code>員工編號</code>、<code>姓名</code>、<code>帳號</code>、<code>單位</code>、<code>職稱</code>，
+    <code>Email</code> 欄位選填。若「帳號」已存在，該筆資料會被更新（不會覆蓋密碼）；
+    若是新帳號，會以「員工編號」作為預設密碼，並要求首次登入時修改密碼。
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    <label>選擇 CSV 檔案
+      <input type="file" name="csv_file" accept=".csv" required>
+    </label>
+    <button type="submit">開始匯入</button>
+  </form>
+</div>
+{% endblock %}
