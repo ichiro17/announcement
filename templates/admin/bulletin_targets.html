@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}編輯應簽對象 - {{ bulletin.title }}{% endblock %}
+{% block content %}
+<h1>編輯應簽對象：{{ bulletin.title }}</h1>
+<p class="hint">取消勾選的人若先前已簽收，該筆簽收紀錄也會一併移除。</p>
+<form method="post" class="card">
+  <label>對象說明（顯示在首頁公開清單上，不會列出個別姓名）
+    <input type="text" name="target_note" value="{{ bulletin.target_note }}">
+  </label>
+
+  <fieldset>
+    <legend>應簽對象 *</legend>
+    <div class="quick-select">
+      <span>快速選取：</span>
+      <button type="button" onclick="selectAll(true)">全校</button>
+      <button type="button" onclick="selectAll(false)">全部取消</button>
+      {% for dept in departments %}
+        <button type="button" onclick="selectByAttr('dept', '{{ dept }}')">{{ dept }}</button>
+      {% endfor %}
+      {% for t in titles %}
+        <button type="button" onclick="selectByAttr('title', '{{ t }}')">{{ t }}</button>
+      {% endfor %}
+    </div>
+    <div class="staff-checklist">
+      {% for s in all_staff %}
+        <label class="staff-item">
+          <input type="checkbox" name="target_ids" value="{{ s.id }}" data-dept="{{ s.department }}" data-title="{{ s.title }}" {{ 'checked' if s.id in current_ids }}>
+          {{ s.name }}（{{ s.department }} / {{ s.title }}）
+        </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <button type="submit">儲存變更</button>
+</form>
+
+<script>
+function selectAll(checked) {
+  document.querySelectorAll('.staff-checklist input[type=checkbox]').forEach(function (cb) {
+    cb.checked = checked;
+  });
+}
+function selectByAttr(attr, value) {
+  var dataAttr = attr === 'dept' ? 'dept' : 'title';
+  document.querySelectorAll('.staff-checklist input[type=checkbox]').forEach(function (cb) {
+    if (cb.dataset[dataAttr] === value) {
+      cb.checked = true;
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -5,7 +5,10 @@
 {% if signed %}
 <table class="list-table">
   <thead>
-    <tr><th>標題</th><th>摘要</th><th>簽收時間</th><th>原始公告</th></tr>
+    <tr>
+      <th>標題</th><th>摘要</th><th>簽收時間</th><th>原始公告</th>
+      {% if current_user.title == '主任' %}<th></th>{% endif %}
+    </tr>
   </thead>
   <tbody>
     {% for b in signed %}
@@ -14,6 +17,9 @@
       <td>{{ b.summary }}</td>
       <td>{{ b.signed_at }}</td>
       <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+      {% if current_user.title == '主任' %}
+      <td><a href="{{ url_for('forward_bulletin', bulletin_id=b.id) }}">轉發給組長</a></td>
+      {% endif %}
     </tr>
     {% endfor %}
   </tbody>

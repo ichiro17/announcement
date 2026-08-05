@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}轉發公告 - {{ bulletin.title }}{% endblock %}
+{% block content %}
+<h1>轉發給本處室組長</h1>
+<p class="hint">{{ bulletin.title }}｜你已簽收此公告。可依公告內容，選擇本處室哪些組長也需要簽收。</p>
+{% if colleagues %}
+<form method="post" class="card">
+  <div class="staff-checklist">
+    {% for s in colleagues %}
+      <label class="staff-item">
+        <input type="checkbox" name="target_ids" value="{{ s.id }}" {{ 'checked disabled' if s.id in current_ids }}>
+        {{ s.name }}（{{ s.title }}）{% if s.id in current_ids %} <span class="tag tag-done">已是應簽對象</span>{% endif %}
+      </label>
+    {% endfor %}
+  </div>
+  <button type="submit">轉發給勾選的組長</button>
+</form>
+{% else %}
+<p class="hint">本處室目前沒有其他組長帳號可以轉發。</p>
+{% endif %}
+{% endblock %}

@@ -265,6 +265,52 @@ def sign_bulletin(bulletin_id):
     return redirect(url_for("staff_dashboard"))
 
 
+@app.route("/bulletins/<int:bulletin_id>/forward", methods=["GET", "POST"])
+@login_required
+def forward_bulletin(bulletin_id):
+    user = current_user()
+    if user["title"] != "主任":
+        abort(403)
+    db = get_db()
+    bulletin = db.execute("SELECT * FROM bulletins WHERE id = ?", (bulletin_id,)).fetchone()
+    if bulletin is None:
+        abort(404)
+    signed = db.execute(
+        "SELECT 1 FROM signatures WHERE bulletin_id = ? AND staff_id = ?",
+        (bulletin_id, user["id"]),
+    ).fetchone()
+    if not signed:
+        abort(403)
+
+    if request.method == "POST":
+        selected_ids = request.form.getlist("target_ids")
+        if not selected_ids:
+            flash("請至少選擇一位組長", "error")
+        else:
+            db.executemany(
+                "INSERT OR IGNORE INTO bulletin_targets (bulletin_id, staff_id) VALUES (?, ?)",
+                [(bulletin_id, sid) for sid in selected_ids],
+            )
+            db.commit()
+            flash("已轉發給選定的組長，他們會在自己的待簽收清單看到這則公告", "success")
+            return redirect(url_for("staff_history"))
+
+    colleagues = db.execute(
+        """SELECT * FROM staff
+           WHERE is_active = 1 AND department = ? AND id != ? AND title != '主任'
+           ORDER BY title, name""",
+        (user["department"], user["id"]),
+    ).fetchall()
+    current_ids = {
+        r["staff_id"] for r in db.execute(
+            "SELECT staff_id FROM bulletin_targets WHERE bulletin_id = ?", (bulletin_id,)
+        ).fetchall()
+    }
+    return render_template(
+        "staff/forward.html", bulletin=bulletin, colleagues=colleagues, current_ids=current_ids
+    )
+
+
 # ---------- 管理者：簽收單 ----------
 
 @app.route("/admin")
@@ -359,6 +405,67 @@ def admin_bulletin_detail(bulletin_id):
     )
 
 
+@app.route("/admin/bulletins/<int:bulletin_id>/targets", methods=["GET", "POST"])
+@admin_required
+def admin_bulletin_targets(bulletin_id):
+    db = get_db()
+    bulletin = db.execute("SELECT * FROM bulletins WHERE id = ?", (bulletin_id,)).fetchone()
+    if bulletin is None:
+        abort(404)
+
+    if request.method == "POST":
+        target_note = request.form.get("target_note", "").strip()
+        target_ids = set(int(x) for x in request.form.getlist("target_ids"))
+        if not target_ids:
+            flash("請至少選擇一位應簽對象", "error")
+        else:
+            current_ids = {
+                r["staff_id"] for r in db.execute(
+                    "SELECT staff_id FROM bulletin_targets WHERE bulletin_id = ?", (bulletin_id,)
+                ).fetchall()
+            }
+            to_add = target_ids - current_ids
+            to_remove = current_ids - target_ids
+            if to_add:
+                db.executemany(
+                    "INSERT INTO bulletin_targets (bulletin_id, staff_id) VALUES (?, ?)",
+                    [(bulletin_id, sid) for sid in to_add],
+                )
+            if to_remove:
+                db.executemany(
+                    "DELETE FROM bulletin_targets WHERE bulletin_id = ? AND staff_id = ?",
+                    [(bulletin_id, sid) for sid in to_remove],
+                )
+                db.executemany(
+                    "DELETE FROM signatures WHERE bulletin_id = ? AND staff_id = ?",
+                    [(bulletin_id, sid) for sid in to_remove],
+                )
+            db.execute(
+                "UPDATE bulletins SET target_note = ? WHERE id = ?", (target_note, bulletin_id)
+            )
+            db.commit()
+            flash("已更新應簽對象", "success")
+            return redirect(url_for("admin_bulletin_detail", bulletin_id=bulletin_id))
+
+    all_staff = db.execute(
+        "SELECT * FROM staff WHERE is_active = 1 ORDER BY department, title, name"
+    ).fetchall()
+    current_ids = {
+        r["staff_id"] for r in db.execute(
+            "SELECT staff_id FROM bulletin_targets WHERE bulletin_id = ?", (bulletin_id,)
+        ).fetchall()
+    }
+    departments, titles = _staff_groups(db)
+    return render_template(
+        "admin/bulletin_targets.html",
+        bulletin=bulletin,
+        all_staff=all_staff,
+        current_ids=current_ids,
+        departments=departments,
+        titles=titles,
+    )
+
+
 # ---------- 管理者：教職員名冊 ----------
 
 @app.route("/admin/staff")
@@ -375,7 +482,7 @@ def admin_staff_new():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         username = request.form.get("username", "").strip()
-        employee_no = request.form.get("employee_no", "").strip()
+        employee_no = request.form.get("employee_no", "").strip() or None
         department = request.form.get("department", "").strip()
         title = request.form.get("title", "").strip()
         email = request.form.get("email", "").strip()
@@ -419,16 +526,29 @@ def admin_staff_edit(staff_id):
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
+        username = request.form.get("username", "").strip()
+        employee_no = request.form.get("employee_no", "").strip() or None
         department = request.form.get("department", "").strip()
         title = request.form.get("title", "").strip()
         email = request.form.get("email", "").strip()
         is_admin = 1 if request.form.get("is_admin") == "on" else 0
         is_active = 1 if request.form.get("is_active") == "on" else 0
 
+        if not name or not username:
+            flash("姓名與帳號為必填", "error")
+            return render_template("admin/staff_form.html", staff=staff)
+
+        dup = db.execute(
+            "SELECT 1 FROM staff WHERE username = ? AND id != ?", (username, staff_id)
+        ).fetchone()
+        if dup:
+            flash("此帳號已被其他教職員使用", "error")
+            return render_template("admin/staff_form.html", staff=staff)
+
         db.execute(
-            """UPDATE staff SET name = ?, department = ?, title = ?, email = ?,
-               is_admin = ?, is_active = ? WHERE id = ?""",
-            (name, department, title, email, is_admin, is_active, staff_id),
+            """UPDATE staff SET name = ?, username = ?, employee_no = ?, department = ?,
+               title = ?, email = ?, is_admin = ?, is_active = ? WHERE id = ?""",
+            (name, username, employee_no, department, title, email, is_admin, is_active, staff_id),
         )
         db.commit()
         flash("已更新教職員資料", "success")
@@ -476,7 +596,7 @@ def admin_staff_import():
         db = get_db()
         created, updated = 0, 0
         for row in reader:
-            employee_no = (row.get("員工編號") or "").strip()
+            employee_no = (row.get("員工編號") or "").strip() or None
             name = (row.get("姓名") or "").strip()
             username = (row.get("帳號") or "").strip()
             department = (row.get("單位") or "").strip()

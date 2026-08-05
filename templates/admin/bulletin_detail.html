@@ -6,7 +6,8 @@
 <p>
   {% if bulletin.source_url %}<a href="{{ bulletin.source_url }}" target="_blank" rel="noopener">查看原始公告</a> ｜ {% endif %}
   對象說明：{{ bulletin.target_note or '無' }} ｜
-  簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }}
+  簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }} ｜
+  <a href="{{ url_for('admin_bulletin_targets', bulletin_id=bulletin.id) }}">編輯應簽對象</a>
 </p>
 
 <table class="list-table">

@@ -6,14 +6,12 @@
   <label>姓名 *
     <input type="text" name="name" value="{{ staff.name if staff else '' }}" required>
   </label>
-  {% if not staff %}
   <label>帳號 *
-    <input type="text" name="username" required>
+    <input type="text" name="username" value="{{ staff.username if staff else '' }}" required>
   </label>
-  <label>員工編號（將作為預設密碼）
-    <input type="text" name="employee_no">
+  <label>員工編號（將作為預設密碼；「重設密碼」按鈕會用這裡目前的值）
+    <input type="text" name="employee_no" value="{{ staff.employee_no if staff else '' }}">
   </label>
-  {% endif %}
   <label>單位
     <input type="text" name="department" value="{{ staff.department if staff else '' }}">
   </label>
