@@ -194,6 +194,17 @@ def change_password():
     return render_template("change_password.html", force=bool(user["must_change_password"]))
 
 
+def _target_summary(db, bulletin_id):
+    rows = db.execute(
+        """SELECT DISTINCT st.department, st.title
+           FROM bulletin_targets t JOIN staff st ON st.id = t.staff_id
+           WHERE t.bulletin_id = ?
+           ORDER BY st.department, st.title""",
+        (bulletin_id,),
+    ).fetchall()
+    return "、".join(f"{r['department']}/{r['title']}" for r in rows)
+
+
 @app.route("/")
 def index():
     db = get_db()
@@ -201,7 +212,10 @@ def index():
         "SELECT * FROM bulletins ORDER BY created_at DESC"
     ).fetchall()
     today_str = date.today().isoformat()
-    return render_template("index.html", bulletins=bulletins, today_str=today_str)
+    target_summaries = {b["id"]: _target_summary(db, b["id"]) for b in bulletins}
+    return render_template(
+        "index.html", bulletins=bulletins, today_str=today_str, target_summaries=target_summaries
+    )
 
 
 # ---------- 一般教職員 ----------
@@ -351,7 +365,6 @@ def admin_bulletin_new():
         title = request.form.get("title", "").strip()
         summary = request.form.get("summary", "").strip()
         source_url = request.form.get("source_url", "").strip()
-        target_note = request.form.get("target_note", "").strip()
         deadline = request.form.get("deadline", "").strip() or None
         target_ids = request.form.getlist("target_ids")
 
@@ -362,9 +375,9 @@ def admin_bulletin_new():
         else:
             user = current_user()
             cur = db.execute(
-                """INSERT INTO bulletins (title, summary, source_url, target_note, deadline, created_by)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (title, summary, source_url, target_note, deadline, user["id"]),
+                """INSERT INTO bulletins (title, summary, source_url, deadline, created_by)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (title, summary, source_url, deadline, user["id"]),
             )
             bulletin_id = cur.lastrowid
             db.executemany(
@@ -400,8 +413,13 @@ def admin_bulletin_detail(bulletin_id):
         (bulletin_id,),
     ).fetchall()
     today_str = date.today().isoformat()
+    target_summary = _target_summary(db, bulletin_id)
     return render_template(
-        "admin/bulletin_detail.html", bulletin=bulletin, targets=targets, today_str=today_str
+        "admin/bulletin_detail.html",
+        bulletin=bulletin,
+        targets=targets,
+        today_str=today_str,
+        target_summary=target_summary,
     )
 
 
@@ -414,7 +432,6 @@ def admin_bulletin_targets(bulletin_id):
         abort(404)
 
     if request.method == "POST":
-        target_note = request.form.get("target_note", "").strip()
         target_ids = set(int(x) for x in request.form.getlist("target_ids"))
         if not target_ids:
             flash("請至少選擇一位應簽對象", "error")
@@ -440,9 +457,6 @@ def admin_bulletin_targets(bulletin_id):
                     "DELETE FROM signatures WHERE bulletin_id = ? AND staff_id = ?",
                     [(bulletin_id, sid) for sid in to_remove],
                 )
-            db.execute(
-                "UPDATE bulletins SET target_note = ? WHERE id = ?", (target_note, bulletin_id)
-            )
             db.commit()
             flash("已更新應簽對象", "success")
             return redirect(url_for("admin_bulletin_detail", bulletin_id=bulletin_id))

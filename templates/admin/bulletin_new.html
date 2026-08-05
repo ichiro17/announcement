@@ -15,21 +15,19 @@
   <label>簽收期限
     <input type="date" name="deadline">
   </label>
-  <label>對象說明（顯示在首頁公開清單上，不會列出個別姓名）
-    <input type="text" name="target_note" placeholder="例如：全校教職員、教務處、總務處">
-  </label>
+  <p class="hint">首頁公開清單上的「應簽對象」會自動列出下方勾選對象目前的單位/職稱，不需另外填寫、也不會列出個別姓名。</p>
 
   <fieldset>
     <legend>應簽對象 *</legend>
     <div class="quick-select">
       <span>快速選取：</span>
-      <button type="button" onclick="selectAll(true); setNote('全校教職員')">全校</button>
+      <button type="button" onclick="selectAll(true)">全校</button>
       <button type="button" onclick="selectAll(false)">全部取消</button>
       {% for dept in departments %}
-        <button type="button" onclick="selectByAttr('dept', '{{ dept }}'); setNote('{{ dept }}')">{{ dept }}</button>
+        <button type="button" onclick="selectByAttr('dept', '{{ dept }}')">{{ dept }}</button>
       {% endfor %}
       {% for t in titles %}
-        <button type="button" onclick="selectByAttr('title', '{{ t }}'); setNote('{{ t }}')">{{ t }}</button>
+        <button type="button" onclick="selectByAttr('title', '{{ t }}')">{{ t }}</button>
       {% endfor %}
     </div>
     <div class="staff-checklist">
@@ -58,14 +56,6 @@ function selectByAttr(attr, value) {
       cb.checked = true;
     }
   });
-}
-function setNote(text) {
-  var input = document.querySelector('input[name=target_note]');
-  if (!input.value) {
-    input.value = text;
-  } else if (!input.value.split('、').includes(text)) {
-    input.value += '、' + text;
-  }
 }
 </script>
 {% endblock %}

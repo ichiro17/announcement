@@ -2,12 +2,8 @@
 {% block title %}編輯應簽對象 - {{ bulletin.title }}{% endblock %}
 {% block content %}
 <h1>編輯應簽對象：{{ bulletin.title }}</h1>
-<p class="hint">取消勾選的人若先前已簽收，該筆簽收紀錄也會一併移除。</p>
+<p class="hint">取消勾選的人若先前已簽收，該筆簽收紀錄也會一併移除。首頁公開清單上的「應簽對象」會自動反映這裡的最新勾選結果。</p>
 <form method="post" class="card">
-  <label>對象說明（顯示在首頁公開清單上，不會列出個別姓名）
-    <input type="text" name="target_note" value="{{ bulletin.target_note }}">
-  </label>
-
   <fieldset>
     <legend>應簽對象 *</legend>
     <div class="quick-select">
