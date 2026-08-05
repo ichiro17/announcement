@@ -228,13 +228,29 @@ def _target_summary(db, bulletin_id):
 @app.route("/")
 def index():
     db = get_db()
-    bulletins = db.execute(
-        "SELECT * FROM bulletins ORDER BY created_at DESC"
-    ).fetchall()
+    dept_filter = request.args.get("dept", "").strip()
+    if dept_filter:
+        bulletins = db.execute(
+            """SELECT DISTINCT b.* FROM bulletins b
+               JOIN bulletin_targets t ON t.bulletin_id = b.id
+               JOIN staff st ON st.id = t.staff_id
+               WHERE st.department = ?
+               ORDER BY b.created_at DESC""",
+            (dept_filter,),
+        ).fetchall()
+    else:
+        bulletins = db.execute(
+            "SELECT * FROM bulletins ORDER BY created_at DESC"
+        ).fetchall()
     today_str = date.today().isoformat()
     target_summaries = {b["id"]: _target_summary(db, b["id"]) for b in bulletins}
     return render_template(
-        "index.html", bulletins=bulletins, today_str=today_str, target_summaries=target_summaries
+        "index.html",
+        bulletins=bulletins,
+        today_str=today_str,
+        target_summaries=target_summaries,
+        dept_tabs=list(DEPARTMENT_COLORS.keys()),
+        dept_filter=dept_filter,
     )
 
 

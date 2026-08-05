@@ -3,6 +3,16 @@
 {% block content %}
 <h1>待簽收公告清單</h1>
 <p class="hint">以下為校內管理者建立、需要指定教職員簽收確認的公告。教職員請點右上角「教職員登入」進行簽收。</p>
+
+<div class="dept-tabs">
+  <a href="{{ url_for('index') }}" class="dept-tab {{ 'active' if not dept_filter }}">全部</a>
+  {% for dept in dept_tabs %}
+    <a href="{{ url_for('index', dept=dept) }}"
+       class="dept-tab {{ 'active' if dept_filter == dept }}"
+       style="--dept-color: {{ dept_color(dept) }};">{{ dept }}</a>
+  {% endfor %}
+</div>
+
 {% if bulletins %}
 <table class="list-table">
   <thead>
@@ -28,6 +38,6 @@
   </tbody>
 </table>
 {% else %}
-<p class="hint">目前還沒有建立任何簽收單。</p>
+<p class="hint">{% if dept_filter %}「{{ dept_filter }}」目前沒有相關的簽收單。{% else %}目前還沒有建立任何簽收單。{% endif %}</p>
 {% endif %}
 {% endblock %}
