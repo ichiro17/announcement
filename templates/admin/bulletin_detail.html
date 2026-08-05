@@ -5,7 +5,12 @@
 <p>{{ bulletin.summary }}</p>
 <p>
   {% if bulletin.source_url %}<a href="{{ bulletin.source_url }}" target="_blank" rel="noopener">查看原始公告</a> ｜ {% endif %}
-  應簽對象：{{ target_summary or '無' }} ｜
+  應簽對象：
+  {% if target_summary %}
+    {% for dept, title in target_summary %}
+      <span style="color: {{ dept_color(dept) }}; font-weight: 600;">{{ dept }}</span>/{{ title }}{% if not loop.last %}、{% endif %}
+    {% endfor %}
+  {% else %}無{% endif %} ｜
   簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }} ｜
   <a href="{{ url_for('admin_bulletin_targets', bulletin_id=bulletin.id) }}">編輯應簽對象</a>
 </p>

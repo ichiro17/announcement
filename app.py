@@ -128,9 +128,29 @@ def admin_required(view):
     return wrapped
 
 
+DEPARTMENT_COLORS = {
+    "教務處": "#2563eb",
+    "學務處": "#16a34a",
+    "總務處": "#d97706",
+    "輔導室": "#9333ea",
+    "人事室": "#dc2626",
+    "會計室": "#0891b2",
+    "幼兒園": "#db2777",
+}
+DEFAULT_DEPARTMENT_COLOR = "#64748b"
+
+
+def dept_color(department):
+    return DEPARTMENT_COLORS.get(department, DEFAULT_DEPARTMENT_COLOR)
+
+
 @app.context_processor
 def inject_user():
-    return {"current_user": current_user(), "today": date.today().isoformat()}
+    return {
+        "current_user": current_user(),
+        "today": date.today().isoformat(),
+        "dept_color": dept_color,
+    }
 
 
 def _post_login_redirect(user):
@@ -202,7 +222,7 @@ def _target_summary(db, bulletin_id):
            ORDER BY st.department, st.title""",
         (bulletin_id,),
     ).fetchall()
-    return "、".join(f"{r['department']}/{r['title']}" for r in rows)
+    return [(r["department"], r["title"]) for r in rows]
 
 
 @app.route("/")
@@ -512,6 +532,14 @@ def admin_staff_new():
             flash("此帳號已存在", "error")
             return render_template("admin/staff_form.html", staff=None)
 
+        if employee_no:
+            dup_no = db.execute(
+                "SELECT 1 FROM staff WHERE employee_no = ?", (employee_no,)
+            ).fetchone()
+            if dup_no:
+                flash("此員工編號已被其他教職員使用", "error")
+                return render_template("admin/staff_form.html", staff=None)
+
         default_password = employee_no if employee_no else "changeme123"
         db.execute(
             """INSERT INTO staff
@@ -558,6 +586,14 @@ def admin_staff_edit(staff_id):
         if dup:
             flash("此帳號已被其他教職員使用", "error")
             return render_template("admin/staff_form.html", staff=staff)
+
+        if employee_no:
+            dup_no = db.execute(
+                "SELECT 1 FROM staff WHERE employee_no = ? AND id != ?", (employee_no, staff_id)
+            ).fetchone()
+            if dup_no:
+                flash("此員工編號已被其他教職員使用", "error")
+                return render_template("admin/staff_form.html", staff=staff)
 
         db.execute(
             """UPDATE staff SET name = ?, username = ?, employee_no = ?, department = ?,
