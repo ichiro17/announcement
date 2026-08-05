@@ -11,10 +11,18 @@
   --bg: #f8fafc;
 }
 
+@font-face {
+  font-family: "jf-openhuninn";
+  src: url("fonts/jf-openhuninn-1.1.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 * { box-sizing: border-box; }
 
 body {
-  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  font-family: "jf-openhuninn", "Segoe UI", "Microsoft JhengHei", sans-serif;
   background: var(--bg);
   color: var(--text);
   margin: 0;
