@@ -26,6 +26,11 @@
         <form method="post" action="{{ url_for('admin_staff_reset_password', staff_id=s.id) }}" style="display:inline" onsubmit="return confirm('確定要重設 ' + '{{ s.name }}' + ' 的密碼嗎？');">
           <button type="submit" class="link-btn">重設密碼</button>
         </form>
+        {% if s.id != current_user.id %}
+        <form method="post" action="{{ url_for('admin_staff_delete', staff_id=s.id) }}" style="display:inline" onsubmit="return confirm('確定要刪除 ' + '{{ s.name }}' + '（{{ s.username }}）這個帳號嗎？此動作無法復原。');">
+          <button type="submit" class="link-btn link-btn-danger">刪除</button>
+        </form>
+        {% endif %}
       </td>
     </tr>
     {% endfor %}

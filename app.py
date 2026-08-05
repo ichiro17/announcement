@@ -640,6 +640,35 @@ def admin_staff_reset_password(staff_id):
     return redirect(url_for("admin_staff_list"))
 
 
+@app.route("/admin/staff/<int:staff_id>/delete", methods=["POST"])
+@admin_required
+def admin_staff_delete(staff_id):
+    db = get_db()
+    staff = db.execute("SELECT * FROM staff WHERE id = ?", (staff_id,)).fetchone()
+    if staff is None:
+        abort(404)
+
+    if staff_id == current_user()["id"]:
+        flash("無法刪除自己目前登入中的帳號", "error")
+        return redirect(url_for("admin_staff_list"))
+
+    in_use = db.execute(
+        """SELECT
+             (SELECT COUNT(*) FROM bulletin_targets WHERE staff_id = ?) +
+             (SELECT COUNT(*) FROM signatures WHERE staff_id = ?) +
+             (SELECT COUNT(*) FROM bulletins WHERE created_by = ?) AS cnt""",
+        (staff_id, staff_id, staff_id),
+    ).fetchone()["cnt"]
+    if in_use:
+        flash("此教職員已有簽收單或簽收紀錄相關資料，無法刪除，請改用「停用」帳號", "error")
+        return redirect(url_for("admin_staff_list"))
+
+    db.execute("DELETE FROM staff WHERE id = ?", (staff_id,))
+    db.commit()
+    flash(f"已刪除教職員「{staff['name']}」（{staff['username']}）", "success")
+    return redirect(url_for("admin_staff_list"))
+
+
 @app.route("/admin/staff/import", methods=["GET", "POST"])
 @admin_required
 def admin_staff_import():
