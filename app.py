@@ -399,7 +399,6 @@ def admin_bulletin_new():
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
-        summary = request.form.get("summary", "").strip()
         source_url = request.form.get("source_url", "").strip()
         deadline = request.form.get("deadline", "").strip() or None
         target_ids = request.form.getlist("target_ids")
@@ -411,9 +410,9 @@ def admin_bulletin_new():
         else:
             user = current_user()
             cur = db.execute(
-                """INSERT INTO bulletins (title, summary, source_url, deadline, created_by)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (title, summary, source_url, deadline, user["id"]),
+                """INSERT INTO bulletins (title, source_url, deadline, created_by)
+                   VALUES (?, ?, ?, ?)""",
+                (title, source_url, deadline, user["id"]),
             )
             bulletin_id = cur.lastrowid
             db.executemany(
@@ -469,7 +468,6 @@ def admin_bulletin_edit(bulletin_id):
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
-        summary = request.form.get("summary", "").strip()
         source_url = request.form.get("source_url", "").strip()
         deadline = request.form.get("deadline", "").strip() or None
 
@@ -478,9 +476,9 @@ def admin_bulletin_edit(bulletin_id):
             return render_template("admin/bulletin_edit.html", bulletin=bulletin)
 
         db.execute(
-            """UPDATE bulletins SET title = ?, summary = ?, source_url = ?, deadline = ?
+            """UPDATE bulletins SET title = ?, source_url = ?, deadline = ?
                WHERE id = ?""",
-            (title, summary, source_url, deadline, bulletin_id),
+            (title, source_url, deadline, bulletin_id),
         )
         db.commit()
         flash("已更新公告內容", "success")

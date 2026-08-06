@@ -5,13 +5,12 @@
 {% if pending %}
 <table class="list-table">
   <thead>
-    <tr><th>標題</th><th>摘要</th><th>簽收期限</th><th>原始公告</th><th></th></tr>
+    <tr><th>標題</th><th>簽收期限</th><th>原始公告</th><th></th></tr>
   </thead>
   <tbody>
     {% for b in pending %}
     <tr class="{{ 'overdue-row' if b.deadline and b.deadline < today }}">
       <td>{{ b.title }}</td>
-      <td>{{ b.summary }}</td>
       <td>{{ b.deadline or '無' }}{% if b.deadline and b.deadline < today %} <span class="tag tag-overdue">已逾期</span>{% endif %}</td>
       <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
       <td>
