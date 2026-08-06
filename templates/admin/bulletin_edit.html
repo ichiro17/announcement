@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}編輯簽收單 - {{ bulletin.title }}{% endblock %}
+{% block content %}
+<h1>編輯簽收單內容</h1>
+<p class="hint">應簽對象請到簽收單詳細頁面用「編輯應簽對象」調整。</p>
+<form method="post" class="card">
+  <label>標題 *
+    <input type="text" name="title" value="{{ bulletin.title }}" required>
+  </label>
+  <label>原始公告連結（bulletin.tn.edu.tw 上的公告網址）
+    <input type="url" name="source_url" value="{{ bulletin.source_url }}" placeholder="https://bulletin.tn.edu.tw/...">
+  </label>
+  <label>重點摘要
+    <textarea name="summary" rows="4">{{ bulletin.summary }}</textarea>
+  </label>
+  <label>簽收期限
+    <input type="date" name="deadline" value="{{ bulletin.deadline or '' }}">
+  </label>
+  <button type="submit">儲存變更</button>
+</form>
+{% endblock %}

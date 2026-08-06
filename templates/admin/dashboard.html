@@ -28,7 +28,13 @@
           <span class="tag">未簽 {{ unsigned }} 人</span>
         {% endif %}
       </td>
-      <td><a href="{{ url_for('admin_bulletin_detail', bulletin_id=b.id) }}">查看名單</a></td>
+      <td>
+        <a href="{{ url_for('admin_bulletin_detail', bulletin_id=b.id) }}">查看名單</a>
+        <a href="{{ url_for('admin_bulletin_edit', bulletin_id=b.id) }}">編輯</a>
+        <form method="post" action="{{ url_for('admin_bulletin_delete', bulletin_id=b.id) }}" style="display:inline" onsubmit="return confirm('確定要刪除「{{ b.title }}」這張簽收單嗎？相關的簽收紀錄也會一併刪除，此動作無法復原。');">
+          <button type="submit" class="link-btn link-btn-danger">刪除</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

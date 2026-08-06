@@ -138,6 +138,14 @@ button:hover, .btn:hover { background: var(--primary-dark); }
   border: 1px solid var(--primary);
 }
 
+.btn-danger {
+  background: var(--danger);
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
 .link-btn {
   background: none;
   border: none;

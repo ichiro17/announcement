@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 {% block title %}{{ bulletin.title }} - 簽收單管理{% endblock %}
 {% block content %}
-<h1>{{ bulletin.title }}</h1>
+<div class="page-header">
+  <h1>{{ bulletin.title }}</h1>
+  <div>
+    <a class="btn btn-secondary" href="{{ url_for('admin_bulletin_edit', bulletin_id=bulletin.id) }}">編輯內容</a>
+    <a class="btn btn-secondary" href="{{ url_for('admin_bulletin_targets', bulletin_id=bulletin.id) }}">編輯應簽對象</a>
+    <form method="post" action="{{ url_for('admin_bulletin_delete', bulletin_id=bulletin.id) }}" style="display:inline" onsubmit="return confirm('確定要刪除「{{ bulletin.title }}」這張簽收單嗎？相關的簽收紀錄也會一併刪除，此動作無法復原。');">
+      <button type="submit" class="btn btn-danger">刪除簽收單</button>
+    </form>
+  </div>
+</div>
 <p>{{ bulletin.summary }}</p>
 <p>
   {% if bulletin.source_url %}<a href="{{ bulletin.source_url }}" target="_blank" rel="noopener">查看原始公告</a> ｜ {% endif %}
@@ -11,8 +20,7 @@
       <span style="color: {{ dept_color(dept) }}; font-weight: 600;">{{ dept }}</span>/{{ title }}{% if not loop.last %}、{% endif %}
     {% endfor %}
   {% else %}無{% endif %} ｜
-  簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }} ｜
-  <a href="{{ url_for('admin_bulletin_targets', bulletin_id=bulletin.id) }}">編輯應簽對象</a>
+  簽收期限：{{ bulletin.deadline or '無' }} ｜ 建立時間：{{ bulletin.created_at }}
 </p>
 
 <table class="list-table">

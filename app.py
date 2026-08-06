@@ -459,6 +459,51 @@ def admin_bulletin_detail(bulletin_id):
     )
 
 
+@app.route("/admin/bulletins/<int:bulletin_id>/edit", methods=["GET", "POST"])
+@admin_required
+def admin_bulletin_edit(bulletin_id):
+    db = get_db()
+    bulletin = db.execute("SELECT * FROM bulletins WHERE id = ?", (bulletin_id,)).fetchone()
+    if bulletin is None:
+        abort(404)
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        summary = request.form.get("summary", "").strip()
+        source_url = request.form.get("source_url", "").strip()
+        deadline = request.form.get("deadline", "").strip() or None
+
+        if not title:
+            flash("請填寫標題", "error")
+            return render_template("admin/bulletin_edit.html", bulletin=bulletin)
+
+        db.execute(
+            """UPDATE bulletins SET title = ?, summary = ?, source_url = ?, deadline = ?
+               WHERE id = ?""",
+            (title, summary, source_url, deadline, bulletin_id),
+        )
+        db.commit()
+        flash("已更新公告內容", "success")
+        return redirect(url_for("admin_bulletin_detail", bulletin_id=bulletin_id))
+
+    return render_template("admin/bulletin_edit.html", bulletin=bulletin)
+
+
+@app.route("/admin/bulletins/<int:bulletin_id>/delete", methods=["POST"])
+@admin_required
+def admin_bulletin_delete(bulletin_id):
+    db = get_db()
+    bulletin = db.execute("SELECT * FROM bulletins WHERE id = ?", (bulletin_id,)).fetchone()
+    if bulletin is None:
+        abort(404)
+    db.execute("DELETE FROM signatures WHERE bulletin_id = ?", (bulletin_id,))
+    db.execute("DELETE FROM bulletin_targets WHERE bulletin_id = ?", (bulletin_id,))
+    db.execute("DELETE FROM bulletins WHERE id = ?", (bulletin_id,))
+    db.commit()
+    flash(f"已刪除簽收單「{bulletin['title']}」", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
 @app.route("/admin/bulletins/<int:bulletin_id>/targets", methods=["GET", "POST"])
 @admin_required
 def admin_bulletin_targets(bulletin_id):
