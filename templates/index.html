@@ -41,6 +41,14 @@
   </tbody>
 </table>
 {% else %}
-<p class="hint">{% if dept_filter %}「{{ dept_filter }}」目前沒有相關的簽收單。{% else %}目前還沒有建立任何簽收單。{% endif %}</p>
+<p class="hint">
+  {% if all_fully_signed %}
+    {% if dept_filter %}「{{ dept_filter }}」相關的公告目前都已全數簽收完成。{% else %}目前的公告都已全數簽收完成。{% endif %}
+  {% elif dept_filter %}
+    「{{ dept_filter }}」目前沒有相關的簽收單。
+  {% else %}
+    目前還沒有建立任何簽收單。
+  {% endif %}
+</p>
 {% endif %}
 {% endblock %}

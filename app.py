@@ -284,6 +284,16 @@ def _target_summary(db, bulletin_id):
     return [(r["department"], r["title"]) for r in rows]
 
 
+def _is_fully_signed(db, bulletin_id):
+    row = db.execute(
+        """SELECT
+             (SELECT COUNT(*) FROM bulletin_targets WHERE bulletin_id = ?) AS total,
+             (SELECT COUNT(*) FROM signatures WHERE bulletin_id = ?) AS signed""",
+        (bulletin_id, bulletin_id),
+    ).fetchone()
+    return row["total"] > 0 and row["signed"] >= row["total"]
+
+
 @app.route("/")
 def index():
     db = get_db()
@@ -301,6 +311,8 @@ def index():
         bulletins = db.execute(
             "SELECT * FROM bulletins ORDER BY created_at DESC"
         ).fetchall()
+    had_bulletins_before_filter = bool(bulletins)
+    bulletins = [b for b in bulletins if not _is_fully_signed(db, b["id"])]
     today_str = date.today().isoformat()
     target_summaries = {b["id"]: _target_summary(db, b["id"]) for b in bulletins}
     return render_template(
@@ -310,6 +322,7 @@ def index():
         target_summaries=target_summaries,
         dept_tabs=list(DEPARTMENT_COLORS.keys()),
         dept_filter=dept_filter,
+        all_fully_signed=had_bulletins_before_filter and not bulletins,
     )
 
 
