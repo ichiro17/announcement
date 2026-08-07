@@ -430,7 +430,9 @@ def admin_bulletin_new():
         deadline = request.form.get("deadline", "").strip() or None
         target_ids = request.form.getlist("target_ids")
 
-        if not title:
+        if not bulletin_no:
+            flash("請填寫公告編號", "error")
+        elif not title:
             flash("請填寫標題", "error")
         elif not target_ids:
             flash("請至少選擇一位應簽對象", "error")
