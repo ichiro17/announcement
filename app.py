@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+import re
 import sqlite3
 import sys
 from datetime import date, datetime, timedelta, timezone
@@ -77,10 +78,41 @@ def close_db(exception=None):
 
 
 def _migrate(db):
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+    )
     existing_cols = {row[1] for row in db.execute("PRAGMA table_info(bulletins)")}
     if "bulletin_no" not in existing_cols:
         db.execute("ALTER TABLE bulletins ADD COLUMN bulletin_no TEXT NOT NULL DEFAULT ''")
     db.commit()
+
+    # 一次性修正：在「公告編號」欄位與台北時區時間上線之前建立的舊公告，
+    # 從舊的原始公告連結反推公告編號，並把當時誤存成 UTC 的建立時間校正成台北時間（+8 小時）。
+    # 用 app_meta 記錄是否執行過，確保只會修正一次，不會在之後每次重啟時重複加 8 小時。
+    already_done = db.execute(
+        "SELECT 1 FROM app_meta WHERE key = 'legacy_bulletin_backfill'"
+    ).fetchone()
+    if not already_done:
+        legacy_rows = db.execute(
+            "SELECT id, source_url, created_at FROM bulletins WHERE bulletin_no = '' AND source_url != ''"
+        ).fetchall()
+        for row_id, source_url, created_at in legacy_rows:
+            bid_match = re.search(r"bid=(\d+)", source_url)
+            bulletin_no = bid_match.group(1) if bid_match else ""
+            try:
+                corrected_created_at = (
+                    datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S") + timedelta(hours=8)
+                ).strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                corrected_created_at = created_at
+            db.execute(
+                "UPDATE bulletins SET bulletin_no = ?, created_at = ? WHERE id = ?",
+                (bulletin_no, corrected_created_at, row_id),
+            )
+        db.execute(
+            "INSERT INTO app_meta (key, value) VALUES ('legacy_bulletin_backfill', '1')"
+        )
+        db.commit()
 
 
 def init_db():
