@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS bulletins (
     title TEXT NOT NULL,
     summary TEXT NOT NULL DEFAULT '',
     source_url TEXT NOT NULL DEFAULT '',
+    bulletin_no TEXT NOT NULL DEFAULT '',
     target_note TEXT NOT NULL DEFAULT '',
     deadline TEXT,
     created_by INTEGER NOT NULL REFERENCES staff(id),

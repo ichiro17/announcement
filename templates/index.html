@@ -16,7 +16,7 @@
 {% if bulletins %}
 <table class="list-table">
   <thead>
-    <tr><th>標題</th><th>應簽對象</th><th>簽收期限</th><th>原始公告</th></tr>
+    <tr><th>標題</th><th>應簽對象</th><th>簽收期限</th><th>公告編號</th></tr>
   </thead>
   <tbody>
     {% for b in bulletins %}
@@ -32,7 +32,10 @@
         {% endif %}
       </td>
       <td>{{ b.deadline or '無' }}{% if b.deadline and b.deadline < today_str %} <span class="tag tag-overdue">已逾期</span>{% endif %}</td>
-      <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+      <td>
+        {% set link = bulletin_source_link(b) %}
+        {% if link %}<a href="{{ link[1] }}" target="_blank" rel="noopener">{{ link[0] }}</a>{% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

@@ -15,6 +15,7 @@
         {% if current_user.is_admin %}
           <a href="{{ url_for('admin_dashboard') }}">簽收單管理</a>
           <a href="{{ url_for('admin_staff_list') }}">教職員名冊</a>
+          <a href="{{ url_for('admin_bulletin_new') }}" class="nav-btn">+ 建立新簽收單</a>
         {% else %}
           <a href="{{ url_for('staff_dashboard') }}">待簽收</a>
           <a href="{{ url_for('staff_history') }}">簽收紀錄</a>

@@ -5,14 +5,17 @@
 {% if pending %}
 <table class="list-table">
   <thead>
-    <tr><th>標題</th><th>簽收期限</th><th>原始公告</th><th></th></tr>
+    <tr><th>標題</th><th>簽收期限</th><th>公告編號</th><th></th></tr>
   </thead>
   <tbody>
     {% for b in pending %}
     <tr class="{{ 'overdue-row' if b.deadline and b.deadline < today }}">
       <td>{{ b.title }}</td>
       <td>{{ b.deadline or '無' }}{% if b.deadline and b.deadline < today %} <span class="tag tag-overdue">已逾期</span>{% endif %}</td>
-      <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+      <td>
+        {% set link = bulletin_source_link(b) %}
+        {% if link %}<a href="{{ link[1] }}" target="_blank" rel="noopener">{{ link[0] }}</a>{% endif %}
+      </td>
       <td>
         <form method="post" action="{{ url_for('sign_bulletin', bulletin_id=b.id) }}" onsubmit="return confirm('確認已閱讀此公告並簽收？');">
           <button type="submit">我已閱讀，確認簽收</button>

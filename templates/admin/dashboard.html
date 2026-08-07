@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% block title %}簽收單管理 - 公告簽收系統{% endblock %}
 {% block content %}
-<div class="page-header">
-  <h1>簽收單管理</h1>
-  <a class="btn" href="{{ url_for('admin_bulletin_new') }}">+ 建立新簽收單</a>
-</div>
+<h1>簽收單管理</h1>
 {% if bulletins %}
 <table class="list-table">
   <thead>

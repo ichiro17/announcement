@@ -64,6 +64,19 @@ body {
   color: var(--primary);
 }
 
+.topbar nav a.nav-btn {
+  background: var(--primary);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.topbar nav a.nav-btn:hover {
+  background: var(--primary-dark);
+  color: white;
+}
+
 .user-info {
   display: flex;
   gap: 0.75rem;

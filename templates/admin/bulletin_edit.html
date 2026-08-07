@@ -3,12 +3,15 @@
 {% block content %}
 <h1>編輯簽收單內容</h1>
 <p class="hint">應簽對象請到簽收單詳細頁面用「編輯應簽對象」調整。</p>
+{% if bulletin.source_url and not bulletin.bulletin_no %}
+<p class="hint">這筆公告目前還是用舊版的原始公告連結（{{ bulletin.source_url }}）顯示，填寫下方公告編號後會改用公告編號組出的連結。</p>
+{% endif %}
 <form method="post" class="card">
+  <label>公告編號（bulletin.tn.edu.tw 網址列 bid= 後面的數字，會自動組成連結）
+    <input type="text" name="bulletin_no" value="{{ bulletin.bulletin_no }}" placeholder="例如：290857">
+  </label>
   <label>標題 *
     <input type="text" name="title" value="{{ bulletin.title }}" required>
-  </label>
-  <label>原始公告連結（bulletin.tn.edu.tw 上的公告網址）
-    <input type="url" name="source_url" value="{{ bulletin.source_url }}" placeholder="https://bulletin.tn.edu.tw/...">
   </label>
   <label>簽收期限
     <input type="date" name="deadline" value="{{ bulletin.deadline or '' }}">

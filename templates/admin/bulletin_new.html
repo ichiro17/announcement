@@ -3,11 +3,11 @@
 {% block content %}
 <h1>建立新簽收單</h1>
 <form method="post" class="card">
+  <label>公告編號（bulletin.tn.edu.tw 網址列 bid= 後面的數字，會自動組成連結）
+    <input type="text" name="bulletin_no" placeholder="例如：290857">
+  </label>
   <label>標題 *
     <input type="text" name="title" required>
-  </label>
-  <label>原始公告連結（bulletin.tn.edu.tw 上的公告網址）
-    <input type="url" name="source_url" placeholder="https://bulletin.tn.edu.tw/...">
   </label>
   <label>簽收期限
     <input type="date" name="deadline">

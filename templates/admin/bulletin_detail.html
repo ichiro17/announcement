@@ -12,7 +12,8 @@
   </div>
 </div>
 <p>
-  {% if bulletin.source_url %}<a href="{{ bulletin.source_url }}" target="_blank" rel="noopener">查看原始公告</a> ｜ {% endif %}
+  {% set link = bulletin_source_link(bulletin) %}
+  {% if link %}公告編號：<a href="{{ link[1] }}" target="_blank" rel="noopener">{{ link[0] }}</a> ｜ {% endif %}
   應簽對象：
   {% if target_summary %}
     {% for dept, title in target_summary %}

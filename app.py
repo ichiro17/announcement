@@ -3,7 +3,7 @@ import io
 import os
 import sqlite3
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
 from flask import (
@@ -39,6 +39,24 @@ if PRODUCTION:
 DEFAULT_ADMIN_USERNAME = "admin"
 DEFAULT_ADMIN_PASSWORD = "admin123"
 
+TAIPEI_TZ = timezone(timedelta(hours=8))
+
+
+def now_taipei_str():
+    return datetime.now(TAIPEI_TZ).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def bulletin_source_link(bulletin):
+    """Returns (display_text, url) for the source announcement, or None."""
+    if bulletin["bulletin_no"]:
+        return (
+            bulletin["bulletin_no"],
+            f"https://bulletin.tn.edu.tw/ViewDetail.aspx?bid={bulletin['bulletin_no']}",
+        )
+    if bulletin["source_url"]:
+        return ("查看原公告", bulletin["source_url"])
+    return None
+
 
 # ---------- 資料庫 ----------
 
@@ -58,11 +76,19 @@ def close_db(exception=None):
         db.close()
 
 
+def _migrate(db):
+    existing_cols = {row[1] for row in db.execute("PRAGMA table_info(bulletins)")}
+    if "bulletin_no" not in existing_cols:
+        db.execute("ALTER TABLE bulletins ADD COLUMN bulletin_no TEXT NOT NULL DEFAULT ''")
+    db.commit()
+
+
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = sqlite3.connect(DB_PATH)
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         db.executescript(f.read())
+    _migrate(db)
     row = db.execute("SELECT COUNT(*) AS c FROM staff").fetchone()
     if row[0] == 0:
         try:
@@ -150,6 +176,7 @@ def inject_user():
         "current_user": current_user(),
         "today": date.today().isoformat(),
         "dept_color": dept_color,
+        "bulletin_source_link": bulletin_source_link,
     }
 
 
@@ -307,8 +334,8 @@ def sign_bulletin(bulletin_id):
     ).fetchone()
     if not already:
         db.execute(
-            "INSERT INTO signatures (bulletin_id, staff_id, ip_address) VALUES (?, ?, ?)",
-            (bulletin_id, user["id"], request.remote_addr or ""),
+            "INSERT INTO signatures (bulletin_id, staff_id, ip_address, signed_at) VALUES (?, ?, ?, ?)",
+            (bulletin_id, user["id"], request.remote_addr or "", now_taipei_str()),
         )
         db.commit()
         flash("已完成簽收", "success")
@@ -399,7 +426,7 @@ def admin_bulletin_new():
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
-        source_url = request.form.get("source_url", "").strip()
+        bulletin_no = request.form.get("bulletin_no", "").strip()
         deadline = request.form.get("deadline", "").strip() or None
         target_ids = request.form.getlist("target_ids")
 
@@ -410,9 +437,9 @@ def admin_bulletin_new():
         else:
             user = current_user()
             cur = db.execute(
-                """INSERT INTO bulletins (title, source_url, deadline, created_by)
-                   VALUES (?, ?, ?, ?)""",
-                (title, source_url, deadline, user["id"]),
+                """INSERT INTO bulletins (title, bulletin_no, deadline, created_by, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (title, bulletin_no, deadline, user["id"], now_taipei_str()),
             )
             bulletin_id = cur.lastrowid
             db.executemany(
@@ -468,7 +495,7 @@ def admin_bulletin_edit(bulletin_id):
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
-        source_url = request.form.get("source_url", "").strip()
+        bulletin_no = request.form.get("bulletin_no", "").strip()
         deadline = request.form.get("deadline", "").strip() or None
 
         if not title:
@@ -476,9 +503,9 @@ def admin_bulletin_edit(bulletin_id):
             return render_template("admin/bulletin_edit.html", bulletin=bulletin)
 
         db.execute(
-            """UPDATE bulletins SET title = ?, source_url = ?, deadline = ?
+            """UPDATE bulletins SET title = ?, bulletin_no = ?, deadline = ?
                WHERE id = ?""",
-            (title, source_url, deadline, bulletin_id),
+            (title, bulletin_no, deadline, bulletin_id),
         )
         db.commit()
         flash("已更新公告內容", "success")

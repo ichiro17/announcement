@@ -6,7 +6,7 @@
 <table class="list-table">
   <thead>
     <tr>
-      <th>標題</th><th>簽收時間</th><th>原始公告</th>
+      <th>標題</th><th>簽收時間</th><th>公告編號</th>
       {% if current_user.title == '主任' %}<th></th>{% endif %}
     </tr>
   </thead>
@@ -15,7 +15,10 @@
     <tr>
       <td>{{ b.title }}</td>
       <td>{{ b.signed_at }}</td>
-      <td>{% if b.source_url %}<a href="{{ b.source_url }}" target="_blank" rel="noopener">查看原公告</a>{% endif %}</td>
+      <td>
+        {% set link = bulletin_source_link(b) %}
+        {% if link %}<a href="{{ link[1] }}" target="_blank" rel="noopener">{{ link[0] }}</a>{% endif %}
+      </td>
       {% if current_user.title == '主任' %}
       <td><a href="{{ url_for('forward_bulletin', bulletin_id=b.id) }}">轉發給組長</a></td>
       {% endif %}
