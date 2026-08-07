@@ -432,6 +432,8 @@ def admin_bulletin_new():
 
         if not bulletin_no:
             flash("請填寫公告編號", "error")
+        elif not bulletin_no.isdigit():
+            flash("公告編號只能填數字", "error")
         elif not title:
             flash("請填寫標題", "error")
         elif not target_ids:
@@ -502,6 +504,9 @@ def admin_bulletin_edit(bulletin_id):
 
         if not title:
             flash("請填寫標題", "error")
+            return render_template("admin/bulletin_edit.html", bulletin=bulletin)
+        if bulletin_no and not bulletin_no.isdigit():
+            flash("公告編號只能填數字", "error")
             return render_template("admin/bulletin_edit.html", bulletin=bulletin)
 
         db.execute(
